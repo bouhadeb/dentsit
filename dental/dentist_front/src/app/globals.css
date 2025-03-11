@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* In your global CSS file or a Tailwind component file */
+.no-arrow {
+    -webkit-appearance: none; /* For Chrome, Safari, and Opera */
+    -moz-appearance: none; /* For Firefox */
+    appearance: none; /* Standard */
+    background: none; /* Remove background */
+    padding-right: 1.5rem; /* Adjust padding for a clean look */
+}
+
+  
+  
