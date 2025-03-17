@@ -21,11 +21,12 @@ const addPatient = async (req, res, next) => {
     try {
       if (err) return res.status(400).json({ error: err.message });
 
-      const { status, firstName, familyName, birthDate, address, phone, description } = req.body;
+      const { status, firstName, familyName, birthDate, address, phone, description, category } = req.body;
 
-      if (!status || !firstName || !familyName || !birthDate || !phone || !description) {
+      // Validate required fields
+      if (!status || !firstName || !familyName || !birthDate || !phone || !description || !category) {
         return res.status(400).json({
-          error: "One or more of these fields is missing {status, firstName, familyName, birthDate, phone, description}",
+          error: "One or more of these fields is missing {status, firstName, familyName, birthDate, phone, description, category}",
         });
       }
 
@@ -42,7 +43,8 @@ const addPatient = async (req, res, next) => {
         address,
         phone,
         description,
-        images: imagePaths, 
+        images: imagePaths,
+        category, // Add the category to the new patient
       });
 
       const savedPatient = await newPatient.save();

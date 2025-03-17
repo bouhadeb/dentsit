@@ -174,7 +174,11 @@ const PatientProfile = ({ params }) => {
                         type="date"
                         name="birthDate"
                         id="birthDate"
-                        value={updatedPatient.birthDate}
+                        value={
+                          updatedPatient.birthDate
+                            ? new Date(updatedPatient.birthDate).toISOString().split('T')[0]
+                            : ''
+                        }
                         onChange={handleChange}
                         className="input input-bordered w-full text-lg p-3"
                       />
@@ -191,7 +195,7 @@ const PatientProfile = ({ params }) => {
                       type="text"
                       name="address"
                       id="address"
-                      value={updatedPatient.address}
+                      value={updatedPatient.address || ""}
                       onChange={handleChange}
                       className="input input-bordered w-full text-lg p-3"
                     />
@@ -226,6 +230,29 @@ const PatientProfile = ({ params }) => {
                       onChange={handleChange}
                       className="textarea textarea-bordered w-full text-lg p-4 h-32"
                     />
+                  </div>
+                  {/* New Category Dropdown for Editing */}
+                  <div>
+                    <label
+                      htmlFor="category"
+                      className="block text-lg font-semibold text-gray-700 mb-2"
+                    >
+                      Catégorie
+                    </label>
+                    <select
+                      name="category"
+                      id="category"
+                      value={updatedPatient.category || ""}
+                      onChange={handleChange}
+                      className="select select-bordered w-full text-lg p-3"
+                    >
+                      <option value="">-- Sélectionnez une catégorie --</option>
+                      <option value="o.c">o.c</option>
+                      <option value="protese">protese</option>
+                      <option value="odf">odf</option>
+                      <option value="para">para</option>
+                      <option value="pathq">pathq</option>
+                    </select>
                   </div>
                   <div>
                     <label
@@ -280,7 +307,7 @@ const PatientProfile = ({ params }) => {
                     <div className="flex flex-col gap-6">
                       <p className="text-2xl font-bold text-gray-800">
                         <span className="text-gray-500">Adresse:</span>{" "}
-                        {patient.address}
+                        {patient.address || "Non spécifié"}
                       </p>
                       <p className="text-2xl font-bold text-gray-800">
                         <span className="text-gray-500">Téléphone:</span>{" "}
@@ -289,6 +316,11 @@ const PatientProfile = ({ params }) => {
                       <p className="text-2xl font-bold text-gray-800">
                         <span className="text-gray-500">Description:</span>{" "}
                         <span className="text-red-600">{patient.description}</span>
+                      </p>
+                      {/* Display the Category */}
+                      <p className="text-2xl font-bold text-gray-800">
+                        <span className="text-gray-500">Catégorie:</span>{" "}
+                        {patient.category || "Non spécifié"}
                       </p>
                     </div>
                   </div>

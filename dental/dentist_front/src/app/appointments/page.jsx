@@ -230,20 +230,33 @@ const AppointmentList = () => {
 
 // Custom render for event content to match the image
 function renderEventContent(eventInfo) {
+  // Determine the current view
+  const isWeekView = eventInfo.view.type === 'timeGridWeek';
+
+  // Extract the time from the title (e.g., "10:30 John Doe" -> "10:30")
+  const fullTitle = eventInfo.event.title;
+  const timeOnly = fullTitle.split(' ')[0]; // Get the time part (first word, e.g., "10:30")
+
+  // Use time only in week view, full title in other views
+  const displayedTitle = isWeekView ? timeOnly : fullTitle;
+
   return (
     <div
-      className="p-1 rounded-lg" // Smaller padding to match the compact look in the image
+      className="p-2 rounded-lg" // Increased padding for better readability
       style={{ 
         height: '100%', // Fill the entire height of the slot
         width: '100%', // Fill the entire width of the slot
         display: 'flex',
         alignItems: 'center', // Center vertically
         justifyContent: 'flex-start', // Align text to the left
-        fontSize: '0.9rem', // Smaller font size to match the image
+        fontSize: '1rem', // Slightly larger font size for readability
         fontWeight: 'normal', // Normal weight to match the image
+        overflow: 'hidden', // Hide overflow to prevent text from spilling
+        textOverflow: 'ellipsis', // Add ellipsis if text is too long
+        whiteSpace: 'nowrap', // Prevent text wrapping
       }}
     >
-      <span>{eventInfo.event.title}</span>
+      <span>{displayedTitle}</span>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { createPatient } from "@/services/patientService";
 
 const Form = () => {
   const [formData, setFormData] = useState({
-    status: "", // New field for status
+    status: "", // Existing field for status
     firstName: "",
     familyName: "",
     birthDate: "",
@@ -13,11 +13,11 @@ const Form = () => {
     phone: "",
     description: "",
     images: [],
+    category: "", // New field for category
   });
 
   const router = useRouter();
 
-  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -45,7 +45,7 @@ const Form = () => {
       <form className="ml-10 w-1/3" onSubmit={handleSubmit}>
         <h1 className="text-3xl">Enregistrer un Patient</h1>
         
-        {/* New Dropdown Field for Status */}
+        {/* Existing Dropdown Field for Status */}
         <label className="form-control w-full">
           <div className="label">
             <span className="label-text mt-5">Statut</span>
@@ -140,9 +140,29 @@ const Form = () => {
             required
           />
         </label>
+        
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Télécharger les images IRM (jusqu&lsquo;à 5)</span>
+            <span className="label-text mt-5">Catégorie</span>
+          </div>
+          <select
+            name="category"
+            className="select select-bordered w-full"
+            onChange={handleChange}
+            required
+          >
+            <option value="">Sélectionnez la catégorie</option>
+            <option value="o.c">o.c</option>
+            <option value="protese">protese</option>
+            <option value="odf">odf</option>
+            <option value="para">para</option>
+            <option value="pathq">pathq</option>
+          </select>
+        </label>
+
+        <label className="form-control w-full">
+          <div className="label">
+            <span className="label-text mt-5">Télécharger les images IRM (jusqu‘à 5)</span>
           </div>
           <input
             type="file"

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema({
-  status: { type: String, required: true }, // New field for status
+  status: { type: String, required: true }, // Existing field for status
   firstName: String,
   familyName: String,
   birthDate: Date,
@@ -9,6 +9,11 @@ const patientSchema = new mongoose.Schema({
   phone: String,
   description: String,
   images: [String],
+  category: {
+    type: String,
+    enum: ["o.c", "protese", "odf", "para", "pathq"], // Restrict to the five categories
+    required: true, // Make it required
+  },
   paymentSplit: [
     {
       totalCost: Number,
