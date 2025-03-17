@@ -1,1 +1,2 @@
-fuck you
+this project is not about a application for dentists or management, it has a way bigger ,greater, more meaningful meaning its about patience and commitment, its is the reason i wake up everyday, all my hopes and dreams starts and ends in this project .
+to whoever reading this from the bottom of my heart fuck you ,you retarded fuck
