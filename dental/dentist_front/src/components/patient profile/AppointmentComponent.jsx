@@ -4,7 +4,6 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import axios from 'axios';
 import { addAppointment, fetchPatient } from '@/services/patientService'; // Ensure this path is correct
 
 const AppointmentComponent = ({ id }) => {

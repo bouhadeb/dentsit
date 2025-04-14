@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
+import { Bar, Pie, Line } from 'react-chartjs-2';
+import { UserGroupIcon, CurrencyDollarIcon, UserIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 const TableauDeBord = () => {
   const [data, setData] = useState({
@@ -14,6 +15,9 @@ const TableauDeBord = () => {
   });
   const [statusBreakdown, setStatusBreakdown] = useState({}); // État pour la décomposition des statuts
   const [revenueData, setRevenueData] = useState({ labels: [], data: [] }); // État pour les revenus des 12 derniers mois
+  const [ageDistribution, setAgeDistribution] = useState({}); // New state for age distribution
+  const [genderDistribution, setGenderDistribution] = useState({}); // New state for gender distribution
+  const [categoryDistribution, setCategoryDistribution] = useState({}); // New state for category distribution
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false); // État pour l'authentification
@@ -108,6 +112,39 @@ const TableauDeBord = () => {
           console.log('Données Revenus 12 Derniers Mois :', revenueData);
           setRevenueData(revenueData || { labels: [], data: [] });
 
+          // Fetch age distribution data
+          const ageDistributionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/patient/age-distribution`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+          });
+          if (!ageDistributionRes.ok) {
+            const errorText = await ageDistributionRes.text();
+            throw new Error(`Échec de la récupération de la distribution d'âge : ${ageDistributionRes.status} - ${errorText}`);
+          }
+          const ageDistributionData = await ageDistributionRes.json();
+          setAgeDistribution(ageDistributionData);
+
+          // Fetch gender distribution data
+          const genderDistributionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/patient/gender-distribution`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+          });
+          if (!genderDistributionRes.ok) {
+            const errorText = await genderDistributionRes.text();
+            throw new Error(`Échec de la récupération de la distribution des genres : ${genderDistributionRes.status} - ${errorText}`);
+          }
+          const genderDistributionData = await genderDistributionRes.json();
+          setGenderDistribution(genderDistributionData);
+
+          // Fetch category distribution data
+          const categoryDistributionRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/patient/category-distribution`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+          });
+          if (!categoryDistributionRes.ok) {
+            const errorText = await categoryDistributionRes.text();
+            throw new Error(`Échec de la récupération de la distribution des catégories : ${categoryDistributionRes.status} - ${errorText}`);
+          }
+          const categoryDistributionData = await categoryDistributionRes.json();
+          setCategoryDistribution(categoryDistributionData);
+
           setData({
             patientsCeMois,
             revenusMensuels,
@@ -174,19 +211,24 @@ const TableauDeBord = () => {
     );
   }
 
-  // Configuration des données du graphique pour les revenus des 12 derniers mois avec des couleurs différentes
+  // Configuration des données du graphique pour les revenus des 12 derniers mois
   const chartData = {
-    labels: revenueData.labels, // ex. : ["2/2024", "3/2024", ..., "2/2025"]
+    labels: revenueData.labels,
     datasets: [{
       label: 'Revenus Mensuels',
-      data: revenueData.data, // ex. : [500, 700, ..., 1000]
-      backgroundColor: generateMonthColors(revenueData.labels.length), // Couleurs dynamiques pour chaque barre
-      borderColor: generateMonthColors(revenueData.labels.length).map(color => color.replace('0.2', '1')), // Couleurs de bordure solides
-      borderWidth: 1,
+      data: revenueData.data,
+      borderColor: 'rgba(249, 115, 22, 1)', // Orange-500
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
     }],
   };
 
-  // Options du graphique pour une meilleure lisibilité
   const chartOptions = {
     responsive: true,
     plugins: {
@@ -200,7 +242,7 @@ const TableauDeBord = () => {
           size: 16,
           weight: 'bold',
         },
-        color: '#374151', // Gris-700
+        color: '#374151',
       },
     },
     scales: {
@@ -209,61 +251,301 @@ const TableauDeBord = () => {
         title: {
           display: true,
           text: 'Revenus (DZD)',
-          color: '#374151', // Gris-700
+          color: '#374151',
         },
         ticks: {
-          color: '#374151', // Gris-700
+          color: '#374151',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
         },
       },
       x: {
         title: {
           display: true,
           text: 'Mois/Année',
-          color: '#374151', // Gris-700
+          color: '#374151',
         },
         ticks: {
-          color: '#374151', // Gris-700
+          color: '#374151',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
         },
       },
     },
   };
 
+  // Configuration des données du graphique pour la distribution d'âge
+  const ageChartData = {
+    labels: Object.keys(ageDistribution),
+    datasets: [{
+      label: 'Nombre de Patients',
+      data: Object.values(ageDistribution),
+      backgroundColor: [
+        'rgba(59, 130, 246, 0.2)', // Bleu
+        'rgba(34, 197, 94, 0.2)',  // Vert
+        'rgba(147, 51, 234, 0.2)', // Violet
+        'rgba(234, 179, 8, 0.2)',  // Jaune
+        'rgba(220, 38, 38, 0.2)',  // Rouge
+      ],
+      borderColor: [
+        'rgb(59, 134, 246)',
+        'rgba(34, 197, 94, 1)',
+        'rgba(147, 51, 234, 1)',
+        'rgba(234, 179, 8, 1)',
+        'rgba(220, 38, 38, 1)',
+      ],
+      borderWidth: 1,
+    }],
+  };
+
+  const ageChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Distribution des Âges des Patients',
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        color: '#374151',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Nombre de Patients',
+          color: '#374151',
+        },
+        ticks: {
+          color: '#374151',
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Tranche d\'Âge',
+          color: '#374151',
+        },
+        ticks: {
+          color: '#374151',
+        },
+      },
+    },
+  };
+
+  // Configuration des données du graphique pour la distribution des genres
+  const genderChartData = {
+    labels: Object.keys(genderDistribution),
+    datasets: [{
+      label: 'Nombre de Patients',
+      data: Object.values(genderDistribution),
+      backgroundColor: [
+        'rgba(59, 130, 246, 0.2)', // Bleu pour Homme
+        'rgba(236, 72, 153, 0.2)', // Rose pour Femme
+        'rgba(156, 163, 175, 0.2)', // Gris pour Autre
+      ],
+      borderColor: [
+        'rgba(59, 130, 246, 1)',
+        'rgba(236, 72, 153, 1)',
+        'rgba(156, 163, 175, 1)',
+      ],
+      borderWidth: 1,
+    }],
+  };
+
+  const genderChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Distribution des Genres des Patients',
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        color: '#374151',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Nombre de Patients',
+          color: '#374151',
+        },
+        ticks: {
+          color: '#374151',
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Genre',
+          color: '#374151',
+        },
+        ticks: {
+          color: '#374151',
+        },
+      },
+    },
+  };
+
+  // Configuration des données du graphique pour la distribution des catégories
+  const categoryChartData = {
+    labels: Object.keys(categoryDistribution),
+    datasets: [{
+      data: Object.values(categoryDistribution),
+      backgroundColor: [
+        'rgba(59, 130, 246, 0.8)',   // Bleu
+        'rgba(34, 197, 94, 0.8)',    // Vert
+        'rgba(147, 51, 234, 0.8)',   // Violet
+        'rgba(234, 179, 8, 0.8)',    // Jaune
+        'rgba(220, 38, 38, 0.8)',    // Rouge
+        'rgba(249, 115, 22, 0.8)',   // Orange
+        'rgba(168, 85, 247, 0.8)',   // Violet
+        'rgba(14, 165, 233, 0.8)',   // Ciel
+      ],
+      borderColor: [
+        'rgba(59, 130, 246, 1)',
+        'rgba(34, 197, 94, 1)',
+        'rgba(147, 51, 234, 1)',
+        'rgba(234, 179, 8, 1)',
+        'rgba(220, 38, 38, 1)',
+        'rgba(249, 115, 22, 1)',
+        'rgba(168, 85, 247, 1)',
+        'rgba(14, 165, 233, 1)',
+      ],
+      borderWidth: 1,
+    }],
+  };
+
+  const categoryChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          padding: 20,
+          font: {
+            size: 12
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: 'Distribution des Catégories de Patients',
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        color: '#374151',
+      },
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Tableau de Bord</h1>
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Patients Ce Mois</h2>
-          <p className="text-3xl font-bold text-blue-600">{data.patientsCeMois}</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Tableau de Bord</h1>
+          <p className="text-gray-600">Aperçu complet de votre cabinet dentaire</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Revenus Mensuels</h2>
-          <p className="text-3xl font-bold text-green-600">{data.revenusMensuels.toFixed(2)} DZD</p>
+
+        {/* Stats Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-700">Patients Ce Mois</h2>
+              <UserGroupIcon className="h-8 w-8 text-blue-500" />
+            </div>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{data.patientsCeMois}</p>
+            <p className="text-sm text-gray-500 mt-2">+12% vs mois dernier</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-700">Revenus Mensuels</h2>
+              <CurrencyDollarIcon className="h-8 w-8 text-green-500" />
+            </div>
+            <p className="text-3xl font-bold text-green-600 mt-2">{data.revenusMensuels.toFixed(2)} DZD</p>
+            <p className="text-sm text-gray-500 mt-2">+8% vs mois dernier</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-purple-500">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-700">Total Patients</h2>
+              <UserIcon className="h-8 w-8 text-purple-500" />
+            </div>
+            <p className="text-3xl font-bold text-purple-600 mt-2">{data.totalPatients}</p>
+            <p className="text-sm text-gray-500 mt-2">Patients actifs</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-yellow-500">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-700">Revenus Totaux</h2>
+              <BanknotesIcon className="h-8 w-8 text-yellow-500" />
+            </div>
+            <p className="text-3xl font-bold text-yellow-600 mt-2">{data.revenusTotaux.toFixed(2)} DZD</p>
+            <p className="text-sm text-gray-500 mt-2">Depuis l'ouverture</p>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Total Patients</h2>
-          <p className="text-3xl font-bold text-purple-600">{data.totalPatients}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Revenus Totaux</h2>
-          <p className="text-3xl font-bold text-yellow-600">{data.revenusTotaux.toFixed(2)} DZD</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 col-span-1 md:col-span-2 lg:col-span-3">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Décomposition des Statuts des Rendez-vous (Ce Mois)</h2>
+
+        {/* Status Breakdown Card */}
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Statut des Rendez-vous (Ce Mois)</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {Object.entries(statusBreakdown).map(([statut, compte]) => (
-              <div key={statut} className="bg-gray-50 p-4 rounded-lg shadow-inner">
+              <div key={statut} className="bg-gray-50 p-4 rounded-lg shadow-inner hover:shadow-md transition-shadow duration-300">
                 <p className={`text-lg font-medium ${getCouleurStatut(statut)}`}>{statut}</p>
                 <p className="text-2xl font-bold text-gray-900">{compte || 0}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
-      <div className="max-w-4xl mx-auto mt-6">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">Revenus des 12 Derniers Mois</h2>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <Bar data={chartData} options={chartOptions} />
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Revenue Chart */}
+          <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Revenus des 12 Derniers Mois</h2>
+            <div className="h-96">
+              <Line data={chartData} options={chartOptions} />
+            </div>
+          </div>
+
+          {/* Age Distribution Chart */}
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Distribution des Âges</h2>
+            <div className="h-80">
+              <Bar data={ageChartData} options={ageChartOptions} />
+            </div>
+          </div>
+
+          {/* Gender Distribution Chart */}
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Distribution des Genres</h2>
+            <div className="h-80">
+              <Bar data={genderChartData} options={genderChartOptions} />
+            </div>
+          </div>
+
+          {/* Category Distribution Chart */}
+          <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Distribution des Catégories</h2>
+            <div className="h-96 flex items-center justify-center">
+              <Pie data={categoryChartData} options={categoryChartOptions} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

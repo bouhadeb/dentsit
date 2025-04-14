@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaUser, FaUserTie, FaBirthdayCake, FaMapMarkerAlt, FaPhone, FaFileAlt, FaTag } from "react-icons/fa";
 import Succ from '@/components/Succ';
 import History from '@/components/patient profile/History';
 import Prescription from '@/components/patient profile/Prescription';
 import Payment from '@/components/patient profile/Payment';
 import AddImage from '@/components/patient profile/AddImage';
 import AppointmentComponent from '@/components/patient profile/AppointmentComponent';
+import PDFComponent from '@/components/patient profile/PDFComponent';
 import { deletePatient, fetchPatient, updatePatient } from '@/services/patientService';
 import { calculateAge } from '@/utils/calculateAge';
 
@@ -18,7 +20,7 @@ const PatientProfile = ({ params }) => {
   const [updatedImage, setUpdatedImage] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
-  const [bottomComponent, setBottomComponent] = useState(null);
+  const [bottomComponent, setBottomComponent] = useState('history');
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -174,7 +176,11 @@ const PatientProfile = ({ params }) => {
                         type="date"
                         name="birthDate"
                         id="birthDate"
-                        value={updatedPatient.birthDate}
+                        value={
+                          updatedPatient.birthDate
+                            ? new Date(updatedPatient.birthDate).toISOString().split('T')[0]
+                            : ''
+                        }
                         onChange={handleChange}
                         className="input input-bordered w-full text-lg p-3"
                       />
@@ -191,7 +197,7 @@ const PatientProfile = ({ params }) => {
                       type="text"
                       name="address"
                       id="address"
-                      value={updatedPatient.address}
+                      value={updatedPatient.address || ""}
                       onChange={handleChange}
                       className="input input-bordered w-full text-lg p-3"
                     />
@@ -226,6 +232,29 @@ const PatientProfile = ({ params }) => {
                       onChange={handleChange}
                       className="textarea textarea-bordered w-full text-lg p-4 h-32"
                     />
+                  </div>
+                  {/* New Category Dropdown for Editing */}
+                  <div>
+                    <label
+                      htmlFor="category"
+                      className="block text-lg font-semibold text-gray-700 mb-2"
+                    >
+                      Catégorie
+                    </label>
+                    <select
+                      name="category"
+                      id="category"
+                      value={updatedPatient.category || ""}
+                      onChange={handleChange}
+                      className="select select-bordered w-full text-lg p-3"
+                    >
+                      <option value="">-- Sélectionnez une catégorie --</option>
+                      <option value="o.c">o.c</option>
+                      <option value="protese">protese</option>
+                      <option value="odf">odf</option>
+                      <option value="para">para</option>
+                      <option value="pathq">pathq</option>
+                    </select>
                   </div>
                   <div>
                     <label
@@ -263,32 +292,43 @@ const PatientProfile = ({ params }) => {
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 ml-60">
                     <div className="flex flex-col gap-6">
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaUserTie className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Prénom:</span>{" "}
                         {patient.status ? `${patient.status} ` : ""}
                         {patient.firstName}
                       </p>
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaUser className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Nom de Famille:</span>{" "}
                         {patient.familyName}
                       </p>
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaBirthdayCake className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Âge:</span>{" "}
                         {calculateAge(patient.birthDate)}
                       </p>
                     </div>
                     <div className="flex flex-col gap-6">
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaMapMarkerAlt className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Adresse:</span>{" "}
-                        {patient.address}
+                        {patient.address || "Non spécifié"}
                       </p>
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaPhone className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Téléphone:</span>{" "}
                         {patient.phone}
                       </p>
-                      <p className="text-2xl font-bold text-gray-800">
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaFileAlt className="mr-3 text-gray-500" />
                         <span className="text-gray-500">Description:</span>{" "}
                         <span className="text-red-600">{patient.description}</span>
+                      </p>
+                      <p className="text-2xl font-bold text-gray-800 flex items-center">
+                        <FaTag className="mr-3 text-gray-500" />
+                        <span className="text-gray-500">Catégorie:</span>{" "}
+                        {patient.category || "Non spécifié"}
                       </p>
                     </div>
                   </div>
@@ -298,35 +338,73 @@ const PatientProfile = ({ params }) => {
 
             {/* Navigation and Sub-Components Box */}
             <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
-              <div className="flex flex-wrap space-x-4 mb-4">
-                <ul className="menu menu-vertical justify-center lg:menu-horizontal w-full bg-transparent rounded-sm">
+              <div className="flex justify-center mb-4">
+                <ul className="menu menu-vertical lg:menu-horizontal bg-base-100 rounded-box">
                   <li className="z-50">
-                    <details open>
-                      <summary>Patient</summary>
-                      <ul>
+                    <details className="dropdown">
+                      <summary className="btn btn-ghost btn-sm rounded-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        Patient
+                      </summary>
+                      <ul className="p-2 shadow menu dropdown-content z-[1] bg-base-100 rounded-box w-52">
                         <li onClick={showEditForm}>
-                          <a>Modifier</a>
+                          <a className="hover:bg-primary hover:text-white">Modifier</a>
                         </li>
                         <li onClick={handleDelete}>
-                          <a>Supprimer</a>
+                          <a className="hover:bg-error hover:text-white">Supprimer</a>
                         </li>
                       </ul>
                     </details>
                   </li>
-                  <li onClick={() => setBottomComponent('history')}>
-                    <a>Historique</a>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('history')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'history' ? 'btn-active' : ''}`}
+                    >
+                      Historique
+                    </button>
                   </li>
-                  <li onClick={() => setBottomComponent('prescription')}>
-                    <a>Prescription</a>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('prescription')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'prescription' ? 'btn-active' : ''}`}
+                    >
+                      Prescription
+                    </button>
                   </li>
-                  <li onClick={() => setBottomComponent('payment')}>
-                    <a>Paiement</a>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('payment')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'payment' ? 'btn-active' : ''}`}
+                    >
+                      Paiement
+                    </button>
                   </li>
-                  <li onClick={() => setBottomComponent('radio_image')}>
-                    <a>Image</a>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('radio_image')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'radio_image' ? 'btn-active' : ''}`}
+                    >
+                      Image
+                    </button>
                   </li>
-                  <li onClick={() => setBottomComponent('AppointmentComponent')}>
-                    <a>Rendez-vous</a>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('pdf')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'pdf' ? 'btn-active' : ''}`}
+                    >
+                      PDF
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => setBottomComponent('AppointmentComponent')}
+                      className={`btn btn-ghost btn-sm ${bottomComponent === 'AppointmentComponent' ? 'btn-active' : ''}`}
+                    >
+                      Rendez-vous
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -335,6 +413,7 @@ const PatientProfile = ({ params }) => {
                 {bottomComponent === 'prescription' && <Prescription id={id} />}
                 {bottomComponent === 'payment' && <Payment id={id} />}
                 {bottomComponent === 'radio_image' && <AddImage id={id} />}
+                {bottomComponent === 'pdf' && <PDFComponent patientId={id} />}
                 {bottomComponent === 'AppointmentComponent' && <AppointmentComponent id={id} />}
                 {console.log(id)}
               </div>

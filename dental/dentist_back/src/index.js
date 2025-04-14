@@ -10,6 +10,7 @@ const patientRoutes = require("./routes/patient");
 const appointmentRoutes = require("./routes/appointment");
 const medicationsRoutes = require("./routes/medications");
 const paymentsRoutes = require("./routes/payments");
+const pdfRoutes = require("./routes/pdfRoutes");
 
 const app = express();
 const port = 3001;
@@ -33,6 +34,7 @@ mongoose
 
 // Routes
 app.use("/api/patient", patientRoutes);
+app.use("/api/patient", pdfRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/medications", medicationsRoutes);
 app.use("/api/payments", paymentsRoutes);

@@ -2,10 +2,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPatient } from "@/services/patientService";
+import { 
+  FaUserTie, 
+  FaUser, 
+  FaBirthdayCake, 
+  FaMapMarkerAlt, 
+  FaPhone, 
+  FaFileAlt, 
+  FaTag, 
+  FaImage 
+} from "react-icons/fa";
 
 const Form = () => {
   const [formData, setFormData] = useState({
-    status: "", // New field for status
+    status: "", // Existing field for status
     firstName: "",
     familyName: "",
     birthDate: "",
@@ -13,11 +23,11 @@ const Form = () => {
     phone: "",
     description: "",
     images: [],
+    category: "", // New field for category
   });
 
   const router = useRouter();
 
-  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -41,14 +51,15 @@ const Form = () => {
   };
 
   return (
-    <div className="flex justify-center pt-20 min-h-screen">
+    <div className="flex justify-center pt-20 min-h-screen mb-20">
       <form className="ml-10 w-1/3" onSubmit={handleSubmit}>
         <h1 className="text-3xl">Enregistrer un Patient</h1>
         
-        {/* New Dropdown Field for Status */}
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Statut</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaUserTie /> Statut
+            </span>
           </div>
           <select
             name="status"
@@ -66,7 +77,9 @@ const Form = () => {
 
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Nom</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaUser /> Nom
+            </span>
           </div>
           <input
             type="text"
@@ -79,7 +92,9 @@ const Form = () => {
         </label>
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Prénom</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaUser /> Prénom
+            </span>
           </div>
           <input
             type="text"
@@ -92,20 +107,35 @@ const Form = () => {
         </label>
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Date de Naissance</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaBirthdayCake /> Date de Naissance (JJ/MM/AAAA)
+            </span>
           </div>
           <input
-            type="date"
+            type="text"
             name="birthDate"
-            placeholder="Entrez la date de naissance"
+            placeholder="JJ/MM/AAAA"
             className="input input-bordered w-full"
-            onChange={handleChange}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Format the input as DD/MM/YYYY
+              if (value.length === 2 || value.length === 5) {
+                e.target.value = value + '/';
+              }
+              // Only allow numbers and forward slashes
+              if (/^[0-9/]*$/.test(value)) {
+                handleChange(e);
+              }
+            }}
+            maxLength="10"
             required
           />
         </label>
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Adresse</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaMapMarkerAlt /> Adresse
+            </span>
           </div>
           <input
             type="text"
@@ -117,7 +147,9 @@ const Form = () => {
         </label>
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Numéro de Téléphone</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaPhone /> Numéro de Téléphone
+            </span>
           </div>
           <input
             type="text"
@@ -130,7 +162,9 @@ const Form = () => {
         </label>
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Description du Patient</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaFileAlt /> Description du Patient
+            </span>
           </div>
           <textarea
             name="description"
@@ -140,9 +174,33 @@ const Form = () => {
             required
           />
         </label>
+        
         <label className="form-control w-full">
           <div className="label">
-            <span className="label-text mt-5">Télécharger les images IRM (jusqu&lsquo;à 5)</span>
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaTag /> Catégorie
+            </span>
+          </div>
+          <select
+            name="category"
+            className="select select-bordered w-full"
+            onChange={handleChange}
+            required
+          >
+            <option value="">Sélectionnez la catégorie</option>
+            <option value="o.c">o.c</option>
+            <option value="protese">protese</option>
+            <option value="odf">odf</option>
+            <option value="para">para</option>
+            <option value="pathq">pathq</option>
+          </select>
+        </label>
+
+        <label className="form-control w-full">
+          <div className="label">
+            <span className="label-text mt-5 flex items-center gap-2">
+              <FaImage /> Télécharger les images IRM (jusqu'à 5)
+            </span>
           </div>
           <input
             type="file"

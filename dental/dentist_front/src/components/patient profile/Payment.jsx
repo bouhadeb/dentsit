@@ -211,27 +211,31 @@ const Payment = ({ id }) => {
                   Paiement {paymentIndex + 1}
                 </h3>
 
-                <div className="overflow-x-auto mb-4">
-                  <table className="table-auto w-full border-collapse border border-gray-300">
-                    <thead>
+                <div className="overflow-x-auto mb-4 rounded-lg shadow">
+                  <table className="min-w-full">
+                    <thead className="bg-blue-600">
                       <tr>
-                        <th className="border px-4 py-2">Date de Paiement</th>
-                        <th className="border px-4 py-2">Montant</th>
-                        <th className="border px-4 py-2">Actions</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-white uppercase">Date de Paiement</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-white uppercase">Montant</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-white uppercase">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white">
                       {paymentInfo.entry && paymentInfo.entry.length > 0 ? (
                         paymentInfo.entry.map((entry, index) => (
-                          <tr key={entry._id || index}>
-                            <td className="border px-4 py-2">
+                          <tr key={entry._id || index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-blue-50'} hover:bg-blue-100 transition-colors`}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                               {new Date(entry.paymentDate).toLocaleDateString("fr-FR")}
                             </td>
-                            <td className="border px-4 py-2">{`${entry.amount} DA`}</td>
-                            <td className="border px-4 py-2 text-center">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                {`${entry.amount} DA`}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                               <button
                                 onClick={() => handlereceipt(entry._id)}
-                                className="btn btn-small btn-outline"
+                                className="px-3 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
                               >
                                 Reçu
                               </button>
@@ -240,23 +244,27 @@ const Payment = ({ id }) => {
                         ))
                       ) : (
                         <tr>
-                          <td className="border px-4 py-2" colSpan="3">
+                          <td className="px-6 py-4 text-sm text-gray-500 text-center bg-white" colSpan="3">
                             Aucun paiement trouvé
                           </td>
                         </tr>
                       )}
-                      <tr>
-                        <td className="border px-4 py-2 font-bold">Coût Total</td>
-                        <td className="border px-4 py-2 font-bold" colSpan="2">{`${paymentInfo.totalCost} DA`}</td>
+                      <tr className="bg-blue-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Coût Total</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600" colSpan="2">
+                          {`${paymentInfo.totalCost} DA`}
+                        </td>
                       </tr>
-                      <tr>
-                        <td className="border px-4 py-2 font-bold">Reste à Payer</td>
-                        <td className="border px-4 py-2 font-bold" colSpan="2">{`${paymentInfo.remaining} DA`}</td>
+                      <tr className="bg-blue-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Reste à Payer</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600" colSpan="2">
+                          {`${paymentInfo.remaining} DA`}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
 
-                  <div className="mt-4">
+                  <div className="mt-4 px-6 py-4 bg-white border-t">
                     <input
                       type="number"
                       placeholder="Montant du Paiement"
@@ -264,11 +272,11 @@ const Payment = ({ id }) => {
                       onChange={(e) =>
                         handlePaymentInputChange(paymentIndex, Number(e.target.value))
                       }
-                      className="border p-2 mr-2"
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mr-2"
                     />
                     <button
                       onClick={() => handleAddPaymentEntry(paymentIndex)}
-                      className="btn btn-outline"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Ajouter Paiement
                     </button>

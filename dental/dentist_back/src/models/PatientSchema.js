@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema({
-  status: { type: String, required: true }, // New field for status
+  status: { type: String, required: true },
   firstName: String,
   familyName: String,
   birthDate: Date,
@@ -9,6 +9,11 @@ const patientSchema = new mongoose.Schema({
   phone: String,
   description: String,
   images: [String],
+  category: {
+    type: String,
+    enum: ["o.c", "protese", "odf", "para", "pathq"],
+    required: true,
+  },
   paymentSplit: [
     {
       totalCost: Number,
@@ -32,6 +37,14 @@ const patientSchema = new mongoose.Schema({
     },
   ],
   history: [{ description: String }],
+  waitingRoom: [
+    {
+      visitDate: { type: Date, default: Date.now },
+      checkInTime: { type: Date, default: Date.now },
+      completed: { type: Boolean, default: false },
+      cancelled: { type: Boolean, default: false },
+    },
+  ],
 });
 
 module.exports = mongoose.model("Patient", patientSchema);
