@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchAllPatients } from "@/services/patientService";
 import { calculateAge } from "@/utils/calculateAge";
+import { FaUser, FaUserTie, FaBirthdayCake, FaIdCard } from "react-icons/fa";
 
 const PatientList = () => {
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(""); // New state for category filter
   const router = useRouter();
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const response = await fetchAllPatients();
-
         setPatients(response);
       } catch (error) {
         console.error("Error fetching patients:", error);
@@ -27,24 +28,33 @@ const PatientList = () => {
     setSearchQuery(e.target.value);
   };
 
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
   const handleRowClick = (id) => {
     router.push(`/patients/${id}`);
   };
 
-  console.log(patients);
-
-  const filteredPatients = patients.filter((patient) =>
-    `${patient.firstName} ${patient.familyName}`
+  // Filter patients based on search query and selected category
+  const filteredPatients = patients.filter((patient) => {
+    const matchesSearchQuery = `${patient.firstName} ${patient.familyName}`
       .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory
+      ? patient.category === selectedCategory
+      : true; // If no category is selected, include all patients
+    return matchesSearchQuery && matchesCategory;
+  });
+
   return (
     <>
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-center mt-40 mb-6">
           Liste des Patients
         </h2>
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 space-x-4">
+          {/* Search Bar */}
           <label className="input input-bordered flex items-center gap-2 w-full max-w-md">
             <input
               type="text"
@@ -66,29 +76,80 @@ const PatientList = () => {
               />
             </svg>
           </label>
+          {/* Category Dropdown */}
+          <select
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            className="select select-bordered w-full max-w-xs"
+          >
+            <option value="">Toutes les catégories</option>
+            <option value="o.c">o.c</option>
+            <option value="protese">protese</option>
+            <option value="odf">odf</option>
+            <option value="para">para</option>
+            <option value="pathq">pathq</option>
+          </select>
         </div>
-        <div className="overflow-x-auto">
-          <table className="table-auto w-full">
-            <thead>
+        <div className="overflow-x-auto rounded-lg shadow-lg mb-8">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2">#</th>
-                <th className="px-4 py-2">Prénom</th>
-                <th className="px-4 py-2">Nom de Famille</th>
-                <th className="px-4 py-2">Âge</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <FaIdCard className="text-gray-500" />
+                    #
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <FaUser className="text-gray-500" />
+                    Prénom
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <FaUserTie className="text-gray-500" />
+                    Nom de Famille
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <FaBirthdayCake className="text-gray-500" />
+                    Âge
+                  </div>
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {filteredPatients.map((patient, index) => (
                 <tr
                   key={patient._id}
-                  className="hover:bg-gray-100 cursor-pointer"
+                  className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                   onClick={() => handleRowClick(patient._id)}
                 >
-                  <td className="border px-4 py-2">{index + 1}</td>
-                  <td className="border px-4 py-2">{patient.firstName}</td>
-                  <td className="border px-4 py-2">{patient.familyName}</td>
-                  <td className="border px-4 py-2">
-                    {calculateAge(patient.birthDate)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <FaIdCard className="text-gray-500" />
+                      {index + 1}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <FaUser className="text-gray-500" />
+                      {patient.firstName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <FaUserTie className="text-gray-500" />
+                      {patient.familyName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <FaBirthdayCake className="text-gray-500" />
+                      {calculateAge(patient.birthDate)}
+                    </div>
                   </td>
                 </tr>
               ))}

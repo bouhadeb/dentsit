@@ -15,11 +15,12 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
     lastname: "",
     birthdate: "",
     date: "",
-    medications: Array.from({ length: 9 }, () => ({
+    medications: [{
       name: "",
       type: "",
       dosage: "",
-    })),
+      boites: "",
+    }],
   });
 
   const [medicationsList, setMedicationsList] = useState([]);
@@ -78,23 +79,54 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
     setShowPrescription(true); // Show prescription after form submission
   };
 
+  const addMedication = () => {
+    setPrescription((prevPrescription) => ({
+      ...prevPrescription,
+      medications: [
+        ...prevPrescription.medications,
+        {
+          name: "",
+          type: "",
+          dosage: "",
+          boites: "",
+        },
+      ],
+    }));
+  };
+
+  const removeMedication = (index) => {
+    setPrescription((prevPrescription) => ({
+      ...prevPrescription,
+      medications: prevPrescription.medications.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
-    <div className="flex justify-center items-center py-10">
+    <div className="flex justify-center items-center py-10 bg-gray-50 min-h-screen">
       {!showPrescription ? (
         // Form Section
-        <div className="w-[1200px] p-8">
-          <h2 className="text-4xl mb-10 text-center">
+        <div className="w-[1200px] p-8 bg-white rounded-xl shadow-lg">
+          <h2 className="text-4xl mb-10 text-center font-bold text-gray-800">
             Ajouter des détails sur les médicaments
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {Array.from({ length: 9 }).map((_, index) => (
-              <div key={index} className="grid grid-cols-4 gap-4 items-end">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {prescription.medications.map((_, index) => (
+              <div key={index} className="grid grid-cols-4 gap-6 items-end bg-gray-50 p-4 rounded-lg relative">
+                {index > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMedication(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    ×
+                  </button>
+                )}
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700">
+                  <label className="block mb-2 font-medium text-gray-700">
                     Medication {index + 1}
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     name="name"
                     value={prescription.medications[index].name || ""}
                     onChange={(e) => handleChange(e, index)}
@@ -111,11 +143,11 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700">
+                  <label className="block mb-2 font-medium text-gray-700">
                     Type
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     name="type"
                     value={prescription.medications[index].type || ""}
                     onChange={(e) => handleChange(e, index)}
@@ -166,11 +198,11 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700">
+                  <label className="block mb-2 font-medium text-gray-700">
                     Dosage
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     name="dosage"
                     value={prescription.medications[index].dosage || ""}
                     onChange={(e) => handleChange(e, index)}
@@ -187,11 +219,11 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700">
+                  <label className="block mb-2 font-medium text-gray-700">
                     Quantité des boites
                   </label>
                   <select
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     name="boites"
                     value={prescription.medications[index].boites || ""}
                     onChange={(e) => handleChange(e, index)}
@@ -208,16 +240,28 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
                 </div>
               </div>
             ))}
-            <button type="submit" className="w-full py-3 px-4 btn btn-outline">
-              Soumettre
-            </button>
+            <div className="flex gap-4">
+              <button 
+                type="button"
+                onClick={addMedication}
+                className="flex-1 py-4 px-6 btn btn-outline gap-2"
+              >
+                Ajouter un médicament
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 py-4 px-6 btn btn-outline"
+              >
+                Soumettre
+              </button>
+            </div>
           </form>
         </div>
       ) : (
         // Prescription Display Section
         <div
           ref={ref}
-          className="relative w-[595px] h-[842px]"
+          className="relative w-[595px] h-[842px] shadow-2xl rounded-lg overflow-hidden"
           style={{
             backgroundImage: "url(/pp.png)",
             backgroundSize: "cover",
@@ -229,70 +273,70 @@ const PrescriptionForm = forwardRef(({ patientId }, ref) => {
             name="patientName"
             value={prescription.patientName}
             readOnly
-            className="absolute top-[232px] left-[120px] w-[100px] bg-transparent border-none outline-none text-black font-semibold"
+            className="absolute top-[232px] left-[120px] w-[100px] bg-transparent border-none outline-none text-black font-semibold text-lg"
           />
           <input
             type="text"
             name="lastname"
             value={prescription.lastname}
             readOnly
-            className="absolute top-[232px] left-[330px] w-[100px] bg-transparent border-none outline-none text-black font-semibold"
+            className="absolute top-[232px] left-[330px] w-[100px] bg-transparent border-none outline-none text-black font-semibold text-lg"
           />
           <input
             type="text"
             name="age"
             value={calculateAge(prescription.birthDate)}
             readOnly
-            className="absolute top-[232px] left-[530px] w-[50px] bg-transparent border-none outline-none text-black font-semibold"
+            className="absolute top-[232px] left-[530px] w-[50px] bg-transparent border-none outline-none text-black font-semibold text-lg"
           />
           <DatePicker
             selected={date}
             onChange={(date) => setDate(date)}
-            className="input absolute top-[175px] left-[430px] w-[130px] bg-transparent border-none outline-none text-black font-semibold"
+            className="input absolute top-[175px] left-[430px] w-[130px] bg-transparent border-none outline-none text-black font-semibold text-lg"
           />
           <div>
             <div className="absolute top-[330px] left-[50px] w-[190px] h-[430px] text-black font-semibold">
               {prescription.medications.map((medication, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={medication.name}
-                  readOnly
-                  className="bg-transparent border-none outline-none w-full"
-                />
+                <div key={index} className="mb-4">
+                  <input
+                    type="text"
+                    value={medication.name}
+                    readOnly
+                    className="bg-transparent border-none outline-none w-full text-lg"
+                  />
+                  {medication.boites && (
+                    <input
+                      type="text"
+                      value={medication.boites}
+                      readOnly
+                      className="bg-transparent border-none outline-none w-full text-sm text-black"
+                    />
+                  )}
+                </div>
               ))}
             </div>
             <div className="absolute top-[330px] left-[220px] w-[150px] h-[430px] text-black font-semibold">
               {prescription.medications.map((medication, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={medication.type}
-                  readOnly
-                  className="bg-transparent border-none outline-none w-full"
-                />
+                <div key={index} className="mb-4">
+                  <input
+                    type="text"
+                    value={medication.type}
+                    readOnly
+                    className="bg-transparent border-none outline-none w-full text-lg"
+                  />
+                </div>
               ))}
             </div>
-            <div className="absolute top-[330px] left-[380px] w-[120px] h-[430px] text-black font-semibold">
+            <div className="absolute top-[330px] left-[380px] w-[125px] h-[430px] text-black font-semibold">
               {prescription.medications.map((medication, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={medication.dosage}
-                  readOnly
-                  className="bg-transparent border-none outline-none w-full"
-                />
-              ))}
-            </div>
-            <div className="absolute top-[330px] left-[500px] w-[70px] h-[430px] text-black font-semibold">
-              {prescription.medications.map((medication, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  value={medication.boites}
-                  readOnly
-                  className="bg-transparent border-none outline-none w-full"
-                />
+                <div key={index} className="mb-4">
+                  <input
+                    type="text"
+                    value={medication.dosage}
+                    readOnly
+                    className="bg-transparent border-none outline-none w-full text-lg"
+                  />
+                </div>
               ))}
             </div>
           </div>
