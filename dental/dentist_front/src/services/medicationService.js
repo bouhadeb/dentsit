@@ -19,3 +19,13 @@ export const fetchMeds = async () => {
     throw error;
   }
 };
+
+export const deleteMed = async (id) => {
+  try {
+    const response = await api.delete(`/medications/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting medication:", error);
+    throw error;
+  }
+};

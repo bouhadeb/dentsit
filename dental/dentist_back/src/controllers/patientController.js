@@ -21,11 +21,12 @@ const addPatient = async (req, res, next) => {
     try {
       if (err) return res.status(400).json({ error: err.message });
 
-      const { status, firstName, familyName, birthDate, address, phone, description } = req.body;
+      const { status, firstName, familyName, birthDate, address, phone, description, category } = req.body;
 
-      if (!status || !firstName || !familyName || !birthDate || !phone || !description) {
+      // Validate required fields
+      if (!status || !firstName || !familyName || !birthDate || !phone || !description || !category) {
         return res.status(400).json({
-          error: "One or more of these fields is missing {status, firstName, familyName, birthDate, phone, description}",
+          error: "One or more of these fields is missing {status, firstName, familyName, birthDate, phone, description, category}",
         });
       }
 
@@ -42,7 +43,8 @@ const addPatient = async (req, res, next) => {
         address,
         phone,
         description,
-        images: imagePaths, 
+        images: imagePaths,
+        category, // Add the category to the new patient
       });
 
       const savedPatient = await newPatient.save();
@@ -55,7 +57,7 @@ const addPatient = async (req, res, next) => {
 
 // Update a patient's details with image upload
 const editPatient = async (req, res, next) => {
-  upload.single("image")(req, res, async (err) => {
+  upload.array("images", 5)(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
 
     try {
@@ -73,14 +75,14 @@ const editPatient = async (req, res, next) => {
         description,
       };
 
-      if (req.file) {
+      if (req.files && req.files.length > 0) {
         // Find the existing patient to get the current images
         const patient = await Patient.findById(id);
         if (!patient) return res.status(404).json({ error: "Patient not found" });
 
-        // Add the new image to the existing images array
-        const imagePath = req.file.path.replace(/\\/g, "/");
-        updatedData.images = [...(patient.images || []), imagePath]; // Append new image
+        // Add the new images to the existing images array
+        const newImagePaths = req.files.map(file => file.path.replace(/\\/g, "/"));
+        updatedData.images = [...(patient.images || []), ...newImagePaths]; // Append new images
       }
 
       const updatedPatient = await Patient.findByIdAndUpdate(id, updatedData, { new: true });
@@ -559,6 +561,192 @@ const getLast12MonthsRevenue = async (req, res, next) => {
   }
 };
 
+// Add a waiting room entry with check-in time and wait time
+const addWaitingRoomEntry = async (req, res, next) => {
+  try {
+    const { patientId, description, checkInTime, waitTime } = req.body;
+
+    if (!patientId || !description) {
+      return res.status(400).json({ error: "patientId and description are required" });
+    }
+
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ error: "Patient not found" });
+    }
+
+    patient.waitingRoom.push({
+      visitDate: new Date(),
+      checkInTime: checkInTime || new Date(),
+      waitTime: waitTime || 0,
+      description,
+      completed: false,
+    });
+
+    const updatedPatient = await patient.save();
+    res.status(200).json(updatedPatient);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Fetch all patients with waiting room entries
+const fetchWaitingRoomPatients = async (req, res, next) => {
+  try {
+    const patients = await Patient.find({ "waitingRoom.0": { $exists: true } })
+      .lean()
+      .sort({ "waitingRoom.checkInTime": -1 }); // Sort by latest check-in
+    res.status(200).json(patients);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updateWaitingRoomEntry = async (req, res, next) => {
+  try {
+    const { patientId, entryId, completed, cancelled, appointmentId } = req.body;
+
+    if (!patientId || !entryId) {
+      return res.status(400).json({ error: "patientId and entryId are required" });
+    }
+
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ error: "Patient not found" });
+    }
+
+    const entry = patient.waitingRoom.id(entryId);
+    if (!entry) {
+      return res.status(404).json({ error: "Waiting room entry not found" });
+    }
+
+    // Update waiting room entry status
+    if (completed !== undefined) {
+      entry.completed = completed;
+      if (completed) entry.cancelled = false;
+    }
+    if (cancelled !== undefined) {
+      entry.cancelled = cancelled;
+      if (cancelled) entry.completed = false;
+    }
+
+    // Update the corresponding appointment status if appointmentId is provided
+    if (appointmentId) {
+      const appointment = patient.appointment.id(appointmentId);
+      if (appointment) {
+        if (completed) {
+          appointment.status = "Fait";
+        } else if (cancelled) {
+          appointment.status = "Annulé";
+        } else {
+          appointment.status = "En Attente";
+        }
+      } else {
+        console.warn("Appointment not found for ID:", appointmentId);
+      }
+    }
+
+    // Update the patient's top-level status based on the latest appointment or waiting room entry
+    if (completed) {
+      patient.status = "Fait";
+    } else if (cancelled) {
+      patient.status = "Annulé";
+    } else {
+      patient.status = "En Attente";
+    }
+
+    const updatedPatient = await patient.save();
+    res.status(200).json(updatedPatient);
+  } catch (error) {
+    console.error("Error in updateWaitingRoomEntry:", error.message, error.stack);
+    return next(error);
+  }
+};
+
+// Get Age Distribution
+const getAgeDistribution = async (req, res, next) => {
+  try {
+    const patients = await Patient.find({}, 'birthDate');
+    
+    // Calculate age groups
+    const ageGroups = {
+      '0-18': 0,
+      '19-30': 0,
+      '31-45': 0,
+      '46-60': 0,
+      '61+': 0
+    };
+
+    const currentDate = new Date();
+    
+    patients.forEach(patient => {
+      const birthDate = new Date(patient.birthDate);
+      const age = currentDate.getFullYear() - birthDate.getFullYear();
+      
+      if (age <= 18) ageGroups['0-18']++;
+      else if (age <= 30) ageGroups['19-30']++;
+      else if (age <= 45) ageGroups['31-45']++;
+      else if (age <= 60) ageGroups['46-60']++;
+      else ageGroups['61+']++;
+    });
+
+    return res.status(200).json(ageGroups);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get Gender Distribution
+const getGenderDistribution = async (req, res, next) => {
+  try {
+    const patients = await Patient.find({}, 'status');
+    
+    // Calculate gender distribution
+    const genderDistribution = {
+      'Homme': 0,
+      'Femme': 0,
+      'Autre': 0
+    };
+
+    patients.forEach(patient => {
+      const status = patient.status || '';
+      if (status.startsWith('M.')) {
+        genderDistribution['Homme']++;
+      } else if (status.startsWith('Mme') || status.startsWith('Mlle')) {
+        genderDistribution['Femme']++;
+      } else {
+        genderDistribution['Autre']++;
+      }
+    });
+
+    return res.status(200).json(genderDistribution);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get Category Distribution
+const getCategoryDistribution = async (req, res, next) => {
+  try {
+    const patients = await Patient.find({}, 'category');
+    
+    // Calculate category distribution
+    const categoryDistribution = {};
+
+    patients.forEach(patient => {
+      const category = patient.category || 'Non spécifié';
+      if (!categoryDistribution[category]) {
+        categoryDistribution[category] = 0;
+      }
+      categoryDistribution[category]++;
+    });
+
+    return res.status(200).json(categoryDistribution);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   addPatient,
   editPatient,
@@ -581,4 +769,10 @@ module.exports = {
   getAllTimeRevenue,
   getTotalPatients,
   getLast12MonthsRevenue,
+  addWaitingRoomEntry,
+  fetchWaitingRoomPatients,
+  updateWaitingRoomEntry,
+  getAgeDistribution,
+  getGenderDistribution,
+  getCategoryDistribution,
 };

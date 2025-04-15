@@ -19,21 +19,35 @@ const {
   updateAppointmentStatus,
   deleteAppointment,
   getMonthlyRevenue,
-  getAllTimeRevenue, // Add this import
-  getTotalPatients, // Add this import
+  getAllTimeRevenue,
+  getTotalPatients,
   getLast12MonthsRevenue,
+  addWaitingRoomEntry,
+  fetchWaitingRoomPatients,
+  updateWaitingRoomEntry,
+  getAgeDistribution,
+  getGenderDistribution,
+  getCategoryDistribution,
 } = require("../controllers/patientController");
 
 const router = Router();
 
-// Prioritize new dashboard routes at the top
-router.get("/last-12-months-revenue", getLast12MonthsRevenue); // New route for last 12 months revenue
-router.get("/all-time-revenue", getAllTimeRevenue); // New route for all-time earnings
-router.get("/total-patients", getTotalPatients); // New route for total patients
-router.get("/monthly-revenue", getMonthlyRevenue); // Existing route
+// Prioritize specific routes at the top
+router.get("/last-12-months-revenue", getLast12MonthsRevenue);
+router.get("/all-time-revenue", getAllTimeRevenue);
+router.get("/total-patients", getTotalPatients);
+router.get("/monthly-revenue", getMonthlyRevenue);
+router.get("/age-distribution", getAgeDistribution);
+router.get("/gender-distribution", getGenderDistribution);
+router.get("/category-distribution", getCategoryDistribution);
+
+router.get("/waiting-room", fetchWaitingRoomPatients); // Changed from /waitingroom
+router.post("/waiting-room/add", addWaitingRoomEntry); // Changed from /waitingroom/add
+router.put("/waiting-room/update", updateWaitingRoomEntry); // Changed from /waitingroom/update
 
 router.post("/", addPatient);
 router.get("/", getAllPatients);
+
 router.put("/:id", editPatient);
 router.get("/:id", getPatientById);
 router.delete("/:id", deletePatient);
@@ -49,8 +63,8 @@ router.delete("/split-payment/:id", deleteSplitPayments);
 router.delete("/split-payment-entry/:id", deleteSplitPaymentEntry);
 
 router.post("/appointments/:id", addAppointment);
-router.get("/appointment/:id", getAppointments);
+router.get("/appointments/:id", getAppointments); // Changed from /appointment/:id
 router.put("/appointment/:id/status", updateAppointmentStatus);
-router.post("/delete-appointment", deleteAppointment);
+router.post("/delete-appointment", deleteAppointment); // Consider changing to DELETE /appointments/:id
 
 module.exports = router;

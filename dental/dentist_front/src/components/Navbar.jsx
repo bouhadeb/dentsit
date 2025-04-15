@@ -58,6 +58,9 @@ const Navbar = () => {
                   <li>
                     <Link href="/appointments">Liste des Rendez-Vous</Link>
                   </li>
+                  <li>
+                    <Link href="/waitingroom">Salle d'Attente</Link>
+                  </li>
                 </ul>
               </details>
             </li>

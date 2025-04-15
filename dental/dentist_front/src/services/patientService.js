@@ -103,3 +103,45 @@ export const addAppointment = async (id, appointmentData) => {
     throw error;
   }
 };
+
+export const fetchWaitingRoomPatients = async () => {
+  try {
+    const response = await api.get(`/patient/waiting-room`); // Already correct
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching waiting room patients:", error);
+    throw error;
+  }
+};
+
+export const addWaitingRoomEntry = async (patientId, description, checkInTime, waitTime) => {
+  try {
+    const response = await api.post(`/patient/waiting-room/add`, { // Updated to /waiting-room/add
+      patientId,
+      description,
+      checkInTime,
+      waitTime,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding waiting room entry:", error);
+    throw error;
+  }
+};
+
+export const updateWaitingRoomEntry = async (patientId, entryId, completed, cancelled, appointmentId) => {
+  try {
+    const response = await api.put(`/patient/waiting-room/update`, {
+      patientId,
+      entryId,
+      completed,
+      cancelled,
+      appointmentId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating waiting room entry:", error);
+    throw error;
+  }
+};
+

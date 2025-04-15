@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <div>
-      <footer className="footer footer-center bg-base-300 text-base-content p-4">
+      <footer className="footer footer-center bg-gray-100 text-base-content p-4">
         <aside>
           <p>
             Copyright © {new Date().getFullYear()} - Tous droits réservés par
